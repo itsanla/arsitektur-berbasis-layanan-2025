@@ -65,6 +65,15 @@ build_service() {
   fi
 }
 
+# Run quality checks first
+echo ""
+echo -e "${YELLOW}Running quality checks...${NC}"
+if ./quality-check.sh; then
+  echo -e "${GREEN}✓ Quality checks passed${NC}"
+else
+  echo -e "${YELLOW}⚠ Quality issues found (continuing build)${NC}"
+fi
+
 # Build all services
 for service in "${services[@]}"; do
   build_service "$service"

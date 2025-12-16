@@ -292,8 +292,9 @@ Setiap service memiliki H2 console:
 http://localhost:{port}/h2-console
 ```
 
-## 🧪 Testing
+## 🧪 Testing & CI/CD
 
+### Manual Testing
 ```bash
 # Run all tests
 ./test-all.sh
@@ -301,6 +302,21 @@ http://localhost:{port}/h2-console
 # Test individual service
 cd Perpustakaan/Buku
 mvnw test
+
+# Run integration tests
+./test-integration.sh
+
+# Run quality checks
+./quality-check.sh
+```
+
+### CI/CD Pipeline
+```bash
+# Run complete CI/CD pipeline
+./ci-cd-pipeline.sh
+
+# Jenkins pipeline available in Jenkinsfile
+# GitHub Actions available in .github/workflows/ci-cd.yml
 ```
 
 ## 📚 Dokumentasi
