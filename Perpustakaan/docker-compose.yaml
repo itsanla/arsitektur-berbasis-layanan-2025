@@ -58,38 +58,38 @@ services:
       retries: 5
 
   # Service Discovery - Eureka Server
-  eureka-server:
-    build: ../eureka
-    container_name: eureka-perpustakaan
-    ports:
-      - "8761:8761"
-    environment:
-      JAVA_OPTS: "-Xmx256m -Xss512k"
-    networks:
-      - perpustakaan-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # eureka-server:
+  #   build: ../eureka
+  #   container_name: eureka-perpustakaan
+  #   ports:
+  #     - "8761:8761"
+  #   environment:
+  #     JAVA_OPTS: "-Xmx256m -Xss512k"
+  #   networks:
+  #     - perpustakaan-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8761"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
 
   # Message Broker - RabbitMQ
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: rabbitmq-perpustakaan
-    ports:
-      - "5673:5672"
-      - "15673:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    networks:
-      - perpustakaan-network
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # rabbitmq:
+  #   image: rabbitmq:3-management-alpine
+  #   container_name: rabbitmq-perpustakaan
+  #   ports:
+  #     - "5673:5672"
+  #     - "15673:15672"
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: guest
+  #     RABBITMQ_DEFAULT_PASS: guest
+  #   networks:
+  #     - perpustakaan-network
+  #   healthcheck:
+  #     test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
 
   # Buku Service
   buku-service:
@@ -111,8 +111,8 @@ services:
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       
-      # Eureka Configuration
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      # Eureka Configuration (Disabled)
+      EUREKA_CLIENT_ENABLED: "false"
       
       # Logstash Configuration
       LOGSTASH_HOST: logstash
@@ -120,7 +120,6 @@ services:
     volumes:
       - buku_data:/app/data
     depends_on:
-      - eureka-server
       - logstash
     networks:
       - perpustakaan-network
@@ -132,168 +131,168 @@ services:
       start_period: 60s
 
   # Anggota Service
-  anggota-service:
-    build: ./anggota
-    container_name: anggota-service
-    ports:
-      - "8085:8085"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8085
-      SPRING_APPLICATION_NAME: ANGGOTA-SERVICE
-      
-      # H2 Database Configuration
-      SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/anggota;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
-      SPRING_DATASOURCE_USERNAME: sa
-      SPRING_DATASOURCE_PASSWORD: password
-      SPRING_H2_CONSOLE_ENABLED: "true"
-      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      
-      # Eureka Configuration
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
-      
-      # Logstash Configuration
-      LOGSTASH_HOST: logstash
-      LOGSTASH_PORT: 5000
-    volumes:
-      - anggota_data:/app/data
-    depends_on:
-      - eureka-server
-      - logstash
-    networks:
-      - perpustakaan-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+  # anggota-service:
+  #   build: ./anggota
+  #   container_name: anggota-service
+  #   ports:
+  #     - "8085:8085"
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: docker
+  #     SERVER_PORT: 8085
+  #     SPRING_APPLICATION_NAME: ANGGOTA-SERVICE
+  #     
+  #     # H2 Database Configuration
+  #     SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/anggota;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+  #     SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+  #     SPRING_DATASOURCE_USERNAME: sa
+  #     SPRING_DATASOURCE_PASSWORD: password
+  #     SPRING_H2_CONSOLE_ENABLED: "true"
+  #     SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
+  #     SPRING_JPA_HIBERNATE_DDL_AUTO: update
+  #     
+  #     # Eureka Configuration
+  #     EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+  #     
+  #     # Logstash Configuration
+  #     LOGSTASH_HOST: logstash
+  #     LOGSTASH_PORT: 5000
+  #   volumes:
+  #     - anggota_data:/app/data
+  #   depends_on:
+  #     - eureka-server
+  #     - logstash
+  #   networks:
+  #     - perpustakaan-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health || exit 1"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 60s
 
   # Pengembalian Service
-  pengembalian-service:
-    build: ./Pengembalian
-    container_name: pengembalian-service
-    ports:
-      - "8086:8086"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8086
-      SPRING_APPLICATION_NAME: PENGEMBALIAN-SERVICE
-      
-      # H2 Database Configuration
-      SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/pengembalian;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
-      SPRING_DATASOURCE_USERNAME: sa
-      SPRING_DATASOURCE_PASSWORD: password
-      SPRING_H2_CONSOLE_ENABLED: "true"
-      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      
-      # Eureka Configuration
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
-      
-      # Logstash Configuration
-      LOGSTASH_HOST: logstash
-      LOGSTASH_PORT: 5000
-    volumes:
-      - pengembalian_data:/app/data
-    depends_on:
-      - eureka-server
-      - logstash
-    networks:
-      - perpustakaan-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+  # pengembalian-service:
+  #   build: ./Pengembalian
+  #   container_name: pengembalian-service
+  #   ports:
+  #     - "8086:8086"
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: docker
+  #     SERVER_PORT: 8086
+  #     SPRING_APPLICATION_NAME: PENGEMBALIAN-SERVICE
+  #     
+  #     # H2 Database Configuration
+  #     SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/pengembalian;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+  #     SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+  #     SPRING_DATASOURCE_USERNAME: sa
+  #     SPRING_DATASOURCE_PASSWORD: password
+  #     SPRING_H2_CONSOLE_ENABLED: "true"
+  #     SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
+  #     SPRING_JPA_HIBERNATE_DDL_AUTO: update
+  #     
+  #     # Eureka Configuration
+  #     EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+  #     
+  #     # Logstash Configuration
+  #     LOGSTASH_HOST: logstash
+  #     LOGSTASH_PORT: 5000
+  #   volumes:
+  #     - pengembalian_data:/app/data
+  #   depends_on:
+  #     - eureka-server
+  #     - logstash
+  #   networks:
+  #     - perpustakaan-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health || exit 1"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 60s
 
   # Peminjaman Service
-  peminjaman-service:
-    build: ./Peminjaman
-    container_name: peminjaman-service
-    ports:
-      - "8087:8087"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8087
-      SPRING_APPLICATION_NAME: PEMINJAMAN-SERVICE
-      
-      # H2 Database Configuration (in-memory for this service)
-      SPRING_DATASOURCE_URL: jdbc:h2:mem:peminjamandb
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
-      SPRING_DATASOURCE_USERNAME: sa
-      SPRING_DATASOURCE_PASSWORD: password
-      SPRING_H2_CONSOLE_ENABLED: "true"
-      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
-      SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
-      SPRING_JPA_OPEN_IN_VIEW: "false"
-      
-      # RabbitMQ Configuration
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: guest
-      SPRING_RABBITMQ_PASSWORD: guest
-      APP_RABBITMQ_EXCHANGE_NAME: peminjaman.exchange
-      APP_RABBITMQ_QUEUE_NAME: peminjaman.queue
-      APP_RABBITMQ_ROUTING_KEY: peminjaman.routing.key
-      
-      # Eureka Configuration
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
-      
-      # Logstash Configuration
-      LOGSTASH_HOST: logstash
-      LOGSTASH_PORT: 5000
-    depends_on:
-      - eureka-server
-      - rabbitmq
-      - logstash
-    networks:
-      - perpustakaan-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+  # peminjaman-service:
+  #   build: ./Peminjaman
+  #   container_name: peminjaman-service
+  #   ports:
+  #     - "8087:8087"
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: docker
+  #     SERVER_PORT: 8087
+  #     SPRING_APPLICATION_NAME: PEMINJAMAN-SERVICE
+  #     
+  #     # H2 Database Configuration (in-memory for this service)
+  #     SPRING_DATASOURCE_URL: jdbc:h2:mem:peminjamandb
+  #     SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+  #     SPRING_DATASOURCE_USERNAME: sa
+  #     SPRING_DATASOURCE_PASSWORD: password
+  #     SPRING_H2_CONSOLE_ENABLED: "true"
+  #     SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
+  #     SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+  #     SPRING_JPA_OPEN_IN_VIEW: "false"
+  #     
+  #     # RabbitMQ Configuration
+  #     SPRING_RABBITMQ_HOST: rabbitmq
+  #     SPRING_RABBITMQ_PORT: 5672
+  #     SPRING_RABBITMQ_USERNAME: guest
+  #     SPRING_RABBITMQ_PASSWORD: guest
+  #     APP_RABBITMQ_EXCHANGE_NAME: peminjaman.exchange
+  #     APP_RABBITMQ_QUEUE_NAME: peminjaman.queue
+  #     APP_RABBITMQ_ROUTING_KEY: peminjaman.routing.key
+  #     
+  #     # Eureka Configuration
+  #     EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+  #     
+  #     # Logstash Configuration
+  #     LOGSTASH_HOST: logstash
+  #     LOGSTASH_PORT: 5000
+  #   depends_on:
+  #     - eureka-server
+  #     - rabbitmq
+  #     - logstash
+  #   networks:
+  #     - perpustakaan-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health || exit 1"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 60s
 
   # API Gateway
-  api-gateway:
-    build: ./api-gateway
-    container_name: perpustakaan-gateway
-    ports:
-      - "9001:9001"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 9001
-      SPRING_APPLICATION_NAME: API-GATEWAY-PERPUSTAKAAN
-      
-      # Eureka Configuration
-      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "true"
-      EUREKA_CLIENT_FETCH_REGISTRY: "true"
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      EUREKA_INSTANCE_HOSTNAME: api-gateway
-      
-      # Logstash Configuration
-      LOGSTASH_HOST: logstash
-      LOGSTASH_PORT: 5000
-    depends_on:
-      - eureka-server
-      - buku-service
-      - anggota-service
-      - peminjaman-service
-      - pengembalian-service
-      - logstash
-    networks:
-      - perpustakaan-network
+  # api-gateway:
+  #   build: ./api-gateway
+  #   container_name: perpustakaan-gateway
+  #   ports:
+  #     - "9001:9001"
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: docker
+  #     SERVER_PORT: 9001
+  #     SPRING_APPLICATION_NAME: API-GATEWAY-PERPUSTAKAAN
+  #     
+  #     # Eureka Configuration
+  #     EUREKA_CLIENT_REGISTER_WITH_EUREKA: "true"
+  #     EUREKA_CLIENT_FETCH_REGISTRY: "true"
+  #     EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+  #     EUREKA_INSTANCE_HOSTNAME: api-gateway
+  #     
+  #     # Logstash Configuration
+  #     LOGSTASH_HOST: logstash
+  #     LOGSTASH_PORT: 5000
+  #   depends_on:
+  #     - eureka-server
+  #     - buku-service
+  #     - anggota-service
+  #     - peminjaman-service
+  #     - pengembalian-service
+  #     - logstash
+  #   networks:
+  #     - perpustakaan-network
 
 volumes:
   buku_data:
-  anggota_data:
-  pengembalian_data:
+  # anggota_data:
+  # pengembalian_data:
   elasticsearch_data:
 
 networks:
