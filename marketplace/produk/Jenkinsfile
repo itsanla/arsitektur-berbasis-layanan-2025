@@ -17,7 +17,11 @@ pipeline {
         stage('Get Version') {
             steps {
                 script {
-                    // Get latest tag from Docker Hub
+                    // Get commit message
+                    def commitMsg = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+                    echo "Commit message: ${commitMsg}"
+                    
+                    // Fetch latest version from Docker Hub
                     def tags = sh(
                         script: """curl -s 'https://registry.hub.docker.com/v2/repositories/${DOCKER_IMAGE}/tags?page_size=100' | \
                                    grep -o '"name":"[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+"' | \
@@ -32,7 +36,23 @@ pipeline {
                         def version = tags.tokenize('.')
                         def major = version[0].toInteger()
                         def minor = version[1].toInteger()
-                        def patch = version[2].toInteger() + 1
+                        def patch = version[2].toInteger()
+                        
+                        // Check commit message for version bump type
+                        if (commitMsg.contains('[major]')) {
+                            major += 1
+                            minor = 0
+                            patch = 0
+                            echo "Major version bump detected"
+                        } else if (commitMsg.contains('[minor]')) {
+                            minor += 1
+                            patch = 0
+                            echo "Minor version bump detected"
+                        } else {
+                            patch += 1
+                            echo "Patch version bump (default)"
+                        }
+                        
                         env.NEW_VERSION = "${major}.${minor}.${patch}"
                     }
                     
