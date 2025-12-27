@@ -1,21 +1,25 @@
 package com.anla.Peminjaman.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @Data
-@Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class Peminjaman {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty("id")
     private Long id;
+    @JsonProperty("tanggal_pinjam")
     private LocalDate tanggal_pinjam;
+    @JsonProperty("tanggal_dikembalikan")
     private LocalDate tanggalDikembalikan;
+    @JsonProperty("tanggal_batas")
     private LocalDate tanggal_batas;
+    @JsonProperty("anggota_id")
     private Long anggotaId;
+    @JsonProperty("buku_id")
     private Long bukuId;
 }

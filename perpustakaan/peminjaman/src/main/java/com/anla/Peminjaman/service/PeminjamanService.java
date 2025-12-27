@@ -3,7 +3,6 @@ package com.anla.Peminjaman.service;
 import com.anla.Peminjaman.dto.PeminjamanDto;
 import com.anla.Peminjaman.dto.PeminjamanMessage;
 import com.anla.Peminjaman.model.Peminjaman;
-import com.anla.Peminjaman.repository.PeminjamanRepository;
 import com.anla.Peminjaman.VO.Anggota;
 import com.anla.Peminjaman.VO.Buku;
 import com.anla.Peminjaman.VO.ResponseTemplateVO;
@@ -11,73 +10,60 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Service;
 import com.anla.Peminjaman.VO.Pengembalian;
 import org.springframework.web.client.RestTemplate;
+import lombok.RequiredArgsConstructor;
 
 import java.time.temporal.ChronoUnit;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
+@RequiredArgsConstructor
 public class PeminjamanService {
 
-    private final PeminjamanRepository peminjamanRepository;
+    private final CqrsClientService cqrsClient;
     private final DiscoveryClient discoveryClient;
     private final RestTemplate restTemplate;
     private final PeminjamanProducerService peminjamanProducerService;
+    private final AtomicLong idCounter = new AtomicLong(1);
 
-    public PeminjamanService(
-            PeminjamanRepository peminjamanRepository,
-            DiscoveryClient discoveryClient,
-            RestTemplate restTemplate,
-            PeminjamanProducerService peminjamanProducerService) {
-        this.peminjamanRepository = peminjamanRepository;
-        this.discoveryClient = discoveryClient;
-        this.restTemplate = restTemplate;
-        this.peminjamanProducerService = peminjamanProducerService;
+    public List<Object> getAllPeminjaman() {
+        return cqrsClient.findAll();
     }
 
-    public List<Peminjaman> getAllPeminjaman() {
-        return peminjamanRepository.findAll();
-    }
-
-    public Peminjaman getPeminjamanById(Long id) {
-        return peminjamanRepository.findById(id).orElse(null);
+    public Object getPeminjamanById(Long id) {
+        return cqrsClient.findById(id.toString());
     }
 
     public Peminjaman createPeminjaman(Peminjaman peminjaman) {
-        Peminjaman savedPeminjaman = peminjamanRepository.save(peminjaman);
-        // Send notification to RabbitMQ
+        peminjaman.setId(idCounter.getAndIncrement());
+        cqrsClient.save(peminjaman, peminjaman.getId().toString());
+        
         PeminjamanMessage message = new PeminjamanMessage(
-            savedPeminjaman.getId(),
-            savedPeminjaman.getAnggotaId(),
-            savedPeminjaman.getBukuId()
+            peminjaman.getId(),
+            peminjaman.getAnggotaId(),
+            peminjaman.getBukuId()
         );
         peminjamanProducerService.sendPeminjamanNotification(message);
-        return savedPeminjaman;
+        return peminjaman;
     }
 
-    public Peminjaman updatePeminjaman(Long id, Peminjaman peminjamanDetails) {
-        Peminjaman peminjaman = peminjamanRepository.findById(id).orElse(null);
-        Peminjaman result = null;
-        if (peminjaman != null) {
-            peminjaman.setTanggal_pinjam(peminjamanDetails.getTanggal_pinjam());
-            peminjaman.setTanggalDikembalikan(peminjamanDetails.getTanggalDikembalikan());
-            peminjaman.setTanggal_batas(peminjamanDetails.getTanggal_batas());
-            peminjaman.setAnggotaId(peminjamanDetails.getAnggotaId());
-            peminjaman.setBukuId(peminjamanDetails.getBukuId());
-            result = peminjamanRepository.save(peminjaman);
-        }
-        return result;
+    public Peminjaman updatePeminjaman(Long id, Peminjaman peminjaman) {
+        peminjaman.setId(id);
+        cqrsClient.update(peminjaman, id.toString());
+        return peminjaman;
     }
 
     public void deletePeminjaman(Long id) {
-        peminjamanRepository.deleteById(id);
+        cqrsClient.delete(id.toString());
     }
 
     public List<ResponseTemplateVO> getPeminjamanWithDetailById(Long id) {
         List<ResponseTemplateVO> responseList = new ArrayList<>();
-        Peminjaman peminjaman = getPeminjamanById(id);
-        if (peminjaman != null) {
+        Object peminjamanObj = getPeminjamanById(id);
+        if (peminjamanObj != null) {
+            Peminjaman peminjaman = convertToPeminjaman(peminjamanObj);
+            
             Buku buku = restTemplate.getForObject("http://BUKU-SERVICE/api/buku/" 
                     + peminjaman.getBukuId(), Buku.class);
 
@@ -98,6 +84,13 @@ public class PeminjamanService {
             responseList.add(vo);
         }
         return responseList;
+    }
+
+    private Peminjaman convertToPeminjaman(Object obj) {
+        if (obj instanceof Peminjaman) {
+            return (Peminjaman) obj;
+        }
+        return new Peminjaman();
     }
 
     private void processPengembalian(Peminjaman peminjaman, Pengembalian pengembalian) {
@@ -121,9 +114,10 @@ public class PeminjamanService {
     }
 
     public PeminjamanDto getPeminjamanWithDenda(Long id) {
-        Peminjaman peminjaman = getPeminjamanById(id);
+        Object peminjamanObj = getPeminjamanById(id);
         PeminjamanDto result = null;
-        if (peminjaman != null) {
+        if (peminjamanObj != null) {
+            Peminjaman peminjaman = convertToPeminjaman(peminjamanObj);
             result = new PeminjamanDto(peminjaman);
         }
         return result;

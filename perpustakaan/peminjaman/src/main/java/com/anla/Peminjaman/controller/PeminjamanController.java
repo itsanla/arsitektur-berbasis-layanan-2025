@@ -4,6 +4,7 @@ import com.anla.Peminjaman.VO.ResponseTemplateVO;
 import com.anla.Peminjaman.dto.PeminjamanDto;
 import com.anla.Peminjaman.model.Peminjaman;
 import com.anla.Peminjaman.service.PeminjamanService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,23 +12,19 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/peminjaman")
+@RequiredArgsConstructor
 public class PeminjamanController {
 
     private final PeminjamanService peminjamanService;
 
-    public PeminjamanController(PeminjamanService peminjamanService) {
-        this.peminjamanService = peminjamanService;
-    }
-
     @GetMapping
-    public List<Peminjaman> getAllPeminjaman() {
+    public List<Object> getAllPeminjaman() {
         return peminjamanService.getAllPeminjaman();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Peminjaman> getPeminjamanById(@PathVariable Long id) {
-        Peminjaman peminjaman = peminjamanService.getPeminjamanById(id);
-        return peminjaman != null ? ResponseEntity.ok(peminjaman) : ResponseEntity.notFound().build();
+    public Object getPeminjamanById(@PathVariable Long id) {
+        return peminjamanService.getPeminjamanById(id);
     }
 
     @GetMapping("/denda/{id}")
@@ -42,15 +39,13 @@ public class PeminjamanController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Peminjaman> updatePeminjaman(@PathVariable Long id, @RequestBody Peminjaman peminjamanDetails) {
-        Peminjaman updatedPeminjaman = peminjamanService.updatePeminjaman(id, peminjamanDetails);
-        return updatedPeminjaman != null ? ResponseEntity.ok(updatedPeminjaman) : ResponseEntity.notFound().build();
+    public Peminjaman updatePeminjaman(@PathVariable Long id, @RequestBody Peminjaman peminjaman) {
+        return peminjamanService.updatePeminjaman(id, peminjaman);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletePeminjaman(@PathVariable Long id) {
+    public void deletePeminjaman(@PathVariable Long id) {
         peminjamanService.deletePeminjaman(id);
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/detail/{id}")
