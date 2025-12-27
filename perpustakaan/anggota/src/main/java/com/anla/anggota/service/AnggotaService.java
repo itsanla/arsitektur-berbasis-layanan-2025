@@ -1,75 +1,40 @@
 package com.anla.anggota.service;
 
 import com.anla.anggota.model.Anggota;
-import com.anla.anggota.repository.AnggotaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Service class for Anggota.
- */
 @Service
-@SuppressWarnings({"PMD.AtLeastOneConstructor", "PMD.ShortVariable"})
+@RequiredArgsConstructor
 public class AnggotaService {
-
-    /**
-     * Repository for Anggota data.
-     */
-    @Autowired
-    private AnggotaRepository anggotaRepository;
-
-    /**
-     * Get all Anggota.
-     * @return List of Anggota.
-     */
-    public List<Anggota> getAllAnggota() {
-        return anggotaRepository.findAll();
+    
+    private final CqrsClientService cqrsClient;
+    private final AtomicLong idCounter = new AtomicLong(1);
+    
+    public Anggota createAnggota(Anggota anggota) {
+        anggota.setId(idCounter.getAndIncrement());
+        cqrsClient.save(anggota, anggota.getId().toString());
+        return anggota;
     }
-
-    /**
-     * Get Anggota by id.
-     * @param id The id of the Anggota.
-     * @return The Anggota object.
-     */
-    public Anggota getAnggotaById(final Long id) {
-        return anggotaRepository.findById(id).orElse(null);
+    
+    public Anggota updateAnggota(Long id, Anggota anggota) {
+        anggota.setId(id);
+        cqrsClient.update(anggota, id.toString());
+        return anggota;
     }
-
-    /**
-     * Create a new Anggota.
-     * @param anggota The Anggota object to create.
-     * @return The created Anggota object.
-     */
-    public Anggota createAnggota(final Anggota anggota) {
-        return anggotaRepository.save(anggota);
+    
+    public void deleteAnggota(Long id) {
+        cqrsClient.delete(id.toString());
     }
-
-    /**
-     * Update an Anggota.
-     * @param id The id of the Anggota to update.
-     * @param anggotaDetails The updated Anggota details.
-     * @return The updated Anggota object.
-     */
-    public Anggota updateAnggota(final Long id, final Anggota anggotaDetails) {
-        final Anggota anggota = anggotaRepository.findById(id).orElse(null);
-        Anggota updatedAnggota = null;
-        if (anggota != null) {
-            anggota.setNim(anggotaDetails.getNim());
-            anggota.setNama(anggotaDetails.getNama());
-            anggota.setAlamat(anggotaDetails.getAlamat());
-            anggota.setJenisKelamin(anggotaDetails.getJenisKelamin());
-            updatedAnggota = anggotaRepository.save(anggota);
-        }
-        return updatedAnggota;
+    
+    public Object getAnggotaById(Long id) {
+        return cqrsClient.findById(id.toString());
     }
-
-    /**
-     * Delete an Anggota.
-     * @param id The id of the Anggota to delete.
-     */
-    public void deleteAnggota(final Long id) {
-        anggotaRepository.deleteById(id);
+    
+    public List<Object> getAllAnggota() {
+        return cqrsClient.findAll();
     }
 }
