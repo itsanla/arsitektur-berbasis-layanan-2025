@@ -2,35 +2,34 @@ version: '3.8'
 
 services:
   cqrs:
-    image: itsanla/cqrs:latest
+    image: ${CQRS_IMAGE:-itsanla/cqrs:latest}
     container_name: cqrs
     restart: unless-stopped
     ports:
-      - "8088:8088"
+      - "${CQRS_PORT:-8088}:8088"
     environment:
-      - SERVICES=buku:127.0.0.1:8084,anggota:127.0.0.1:8085,pengembalian:127.0.0.1:8086,peminjaman:127.0.0.1:8087,produk:127.0.0.1:8081,pelanggan:127.0.0.1:8082,order:127.0.0.1:8083
-      - SPRING_DATA_MONGODB_HOST=mongodb
+      - SERVICES=${SERVICES}
+      - SPRING_DATA_MONGODB_HOST=${MONGODB_HOST:-mongodb}
+      - SPRING_DATA_MONGODB_PORT=${MONGODB_PORT:-27017}
+      - SPRING_DATA_MONGODB_USERNAME=${MONGODB_USER}
+      - SPRING_DATA_MONGODB_PASSWORD=${MONGODB_PASSWORD}
+      - SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE=${MONGODB_AUTH_DB:-admin}
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - mongodb-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8088/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
   mongodb:
-    image: mongo:8.0.17
+    image: ${MONGODB_IMAGE:-mongo:8.0.17}
     container_name: mongodb
-    restart: "no"
+    restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "${MONGODB_PORT:-27017}:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: anla
-      MONGO_INITDB_ROOT_PASSWORD: "070078"
-      MONGO_INITDB_DATABASE: cqrs_query
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGODB_INIT_DB:-cqrs_query}
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
@@ -48,9 +47,9 @@ services:
     container_name: mongo-express
     restart: unless-stopped
     ports:
-      - "8081:8081"
+      - "${MONGO_EXPRESS_PORT:-8081}:8081"
     environment:
-      ME_CONFIG_MONGODB_URL: mongodb://anla:070078@mongodb:27017/?authSource=admin
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@mongodb:27017/?authSource=${MONGODB_AUTH_DB:-admin}
       ME_CONFIG_BASICAUTH: false
     depends_on:
       mongodb:
