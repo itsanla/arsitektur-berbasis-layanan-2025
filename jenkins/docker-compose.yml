@@ -12,15 +12,9 @@ services:
       - "50000:50000"
     environment:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
-      - DOCKER_HUB_USERNAME=${DOCKER_HUB_USERNAME}
-      - DOCKER_HUB_TOKEN=${DOCKER_HUB_TOKEN}
-      - JENKINS_ADMIN_USER=${JENKINS_ADMIN_USER}
-      - JENKINS_ADMIN_PASSWORD=${JENKINS_ADMIN_PASSWORD}
     volumes:
       - jenkins-data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./plugins.txt:/usr/share/jenkins/ref/plugins.txt
-      - ./init.groovy:/usr/share/jenkins/ref/init.groovy.d/init.groovy
     networks:
       - jenkins-network
     restart: unless-stopped
