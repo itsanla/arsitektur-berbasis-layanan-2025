@@ -8,7 +8,8 @@ services:
     ports:
       - "${CQRS_PORT:-8088}:8088"
     environment:
-      - SERVICES=${SERVICES}
+      - APP_SERVICES=${SERVICES}
+      - APP_AUTH_ENABLED=${APP_AUTH_ENABLED:-false}
       - SPRING_DATA_MONGODB_HOST=${MONGODB_HOST:-mongodb}
       - SPRING_DATA_MONGODB_PORT=${MONGODB_PORT:-27017}
       - SPRING_DATA_MONGODB_USERNAME=${MONGODB_USER}
