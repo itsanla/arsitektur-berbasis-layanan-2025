@@ -1,5 +1,6 @@
 package com.anla.cqrs.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -7,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
     
     @Value("${app.services}")
@@ -18,36 +20,19 @@ public class AuthService {
     private Map<String, String> serviceIpMap;
     
     public boolean isAuthorized(String serviceName, String clientIP) {
-        if (!authEnabled) {
-            return true;
-        }
-        
-        if (serviceIpMap == null) {
-            initializeServiceMap();
-        }
-        
+        if (!authEnabled) return true;
+        if (serviceIpMap == null) initializeServiceMap();
         String expectedIP = serviceIpMap.get(serviceName);
         return expectedIP != null && expectedIP.equals(clientIP);
     }
     
     private void initializeServiceMap() {
         serviceIpMap = new HashMap<>();
-        String[] services = servicesConfig.split(",");
-        
-        for (String service : services) {
+        for (String service : servicesConfig.split(",")) {
             String[] parts = service.trim().split(":");
             if (parts.length == 3) {
-                String name = parts[0];
-                String ip = parts[1];
-                serviceIpMap.put(name, ip);
+                serviceIpMap.put(parts[0], parts[1]);
             }
         }
-    }
-    
-    public Map<String, String> getServiceIpMap() {
-        if (serviceIpMap == null) {
-            initializeServiceMap();
-        }
-        return serviceIpMap;
     }
 }
