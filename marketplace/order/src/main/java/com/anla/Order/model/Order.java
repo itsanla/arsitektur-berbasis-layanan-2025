@@ -1,24 +1,32 @@
 package com.anla.Order.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
-@Data
 @Entity
 @Table(name = "orders")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-    @Column(unique = true)
-    private String orderId; // Aggregate ID from the event
-    private String productId;
-    private String pelangganId;
-    private int jumlah;
-    private LocalDateTime tanggal;
+    private Long id;
+    
+    private Long pelangganId;
+    private Long produkId;
+    private Integer quantity;
+    private Double totalHarga;
     private String status;
-    private BigDecimal total;
+    private LocalDate orderDate;
+    
+    @Transient
+    private Object pelanggan;
+    
+    @Transient
+    private Object produk;
 }

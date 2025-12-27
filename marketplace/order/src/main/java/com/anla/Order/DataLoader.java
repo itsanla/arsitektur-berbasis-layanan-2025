@@ -1,59 +1,43 @@
 package com.anla.Order;
 
 import com.anla.Order.model.Order;
-import com.anla.Order.model.OrderReadModel;
 import com.anla.Order.repository.OrderRepository;
-import com.anla.Order.repository.mongo.OrderReadRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import java.time.LocalDateTime;
-import java.math.BigDecimal;
-import java.util.UUID;
+
+import java.time.LocalDate;
 
 @Component
 public class DataLoader implements CommandLineRunner {
-
+    
     @Autowired
-    private OrderRepository orderRepository; // PostgreSQL untuk write model (event store tetap)
-
-    @Autowired
-    private OrderReadRepository orderReadRepository; // MongoDB untuk read model
-
+    private OrderRepository orderRepository;
+    
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("Memuat data order awal...");
-
-        // Cek jika data sudah ada untuk menghindari duplikasi
-        if (orderRepository.count() == 0 && orderReadRepository.count() == 0) {
-            String orderId = UUID.randomUUID().toString();
-            
-            // Data untuk PostgreSQL (Write Model - Event Store tetap menggunakan ini)
+        if (orderRepository.count() == 0) {
+            // Sample data
             Order order1 = new Order();
-            order1.setOrderId(orderId);
-            order1.setPelangganId("1");
-            order1.setProductId("1");
-            order1.setJumlah(10);
-            order1.setTanggal(LocalDateTime.now());
-            order1.setStatus("PENDING");
-            order1.setTotal(new BigDecimal("150000"));
-            orderRepository.save(order1);
-            System.out.println("Data order untuk PostgreSQL berhasil dibuat dengan ID: " + order1.getId());
-
-            // Data untuk MongoDB (Read Model)
-            OrderReadModel orderReadModel = new OrderReadModel();
-            orderReadModel.setOrderId(orderId);
-            orderReadModel.setPelangganId("1");
-            orderReadModel.setProductId("1");
-            orderReadModel.setJumlah(10);
-            orderReadModel.setTanggal(LocalDateTime.now());
-            orderReadModel.setStatus("PENDING");
-            orderReadModel.setTotal(new BigDecimal("150000"));
-            orderReadRepository.save(orderReadModel);
-            System.out.println("Data order untuk MongoDB berhasil dibuat dengan ID: " + orderReadModel.getId());
+            order1.setPelangganId(1L);
+            order1.setProdukId(1L);
+            order1.setQuantity(2);
+            order1.setTotalHarga(30000000.0);
+            order1.setStatus("COMPLETED");
+            order1.setOrderDate(LocalDate.now().minusDays(5));
             
-        } else {
-            System.out.println("Data order sudah ada, tidak perlu memuat ulang.");
+            Order order2 = new Order();
+            order2.setPelangganId(2L);
+            order2.setProdukId(2L);
+            order2.setQuantity(1);
+            order2.setTotalHarga(8000000.0);
+            order2.setStatus("PENDING");
+            order2.setOrderDate(LocalDate.now().minusDays(2));
+            
+            orderRepository.save(order1);
+            orderRepository.save(order2);
+            
+            System.out.println("Sample order data loaded!");
         }
     }
 }
